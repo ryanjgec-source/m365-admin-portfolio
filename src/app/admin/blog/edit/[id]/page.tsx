@@ -1,0 +1,288 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import { useRouter, useParams } from "next/navigation"
+import { useSession } from "@/lib/auth-client"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Switch } from "@/components/ui/switch"
+import { ArrowLeft, Loader2, Save } from "lucide-react"
+import Link from "next/link"
+import { toast } from "sonner"
+import { RichTextEditor } from "@/components/ui/rich-text-editor"
+
+interface BlogPost {
+  id: number
+  title: string
+  slug: string
+  category: string
+  content: string
+  seoDescription: string | null
+  featuredImage: string | null
+  status: string
+}
+
+export default function EditBlogPostPage() {
+  const { data: session, isPending } = useSession()
+  const router = useRouter()
+  const params = useParams()
+  const postId = params.id as string
+  const [isLoading, setIsLoading] = useState(true)
+  const [isSaving, setIsSaving] = useState(false)
+  
+  const [formData, setFormData] = useState({
+    title: "",
+    slug: "",
+    category: "Learning",
+    content: "",
+    seoDescription: "",
+    featuredImage: "",
+    status: "draft" as "draft" | "published"
+  })
+
+  useEffect(() => {
+    if (!isPending && !session?.user) {
+      router.push("/admin/login")
+    }
+  }, [session, isPending, router])
+
+  useEffect(() => {
+    if (session?.user && postId) {
+      fetchPost()
+    }
+  }, [session, postId])
+
+  const fetchPost = async () => {
+    try {
+      const response = await fetch(`/api/blog-posts?id=${postId}`)
+      if (!response.ok) throw new Error("Failed to fetch post")
+      const post: BlogPost = await response.json()
+      
+      setFormData({
+        title: post.title,
+        slug: post.slug,
+        category: post.category,
+        content: post.content,
+        seoDescription: post.seoDescription || "",
+        featuredImage: post.featuredImage || "",
+        status: post.status as "draft" | "published"
+      })
+    } catch (error) {
+      console.error("Error fetching post:", error)
+      toast.error("Failed to load post")
+      router.push("/admin/blog")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleSave = async () => {
+    if (!formData.title.trim()) {
+      toast.error("Title is required")
+      return
+    }
+
+    if (!formData.slug.trim()) {
+      toast.error("Slug is required")
+      return
+    }
+
+    if (!formData.content.trim()) {
+      toast.error("Content is required")
+      return
+    }
+
+    setIsSaving(true)
+
+    try {
+      const response = await fetch(`/api/blog-posts?id=${postId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(formData)
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || "Failed to update post")
+      }
+
+      toast.success("Post updated successfully!")
+      router.push("/admin/blog")
+    } catch (error: any) {
+      console.error("Error updating post:", error)
+      toast.error(error.message || "Failed to update post")
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  if (isPending || isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
+  }
+
+  if (!session?.user) {
+    return null
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="max-w-4xl mx-auto p-6 space-y-6">
+        <div>
+          <Link href="/admin/blog">
+            <Button variant="ghost" size="sm" className="mb-2">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Blog Posts
+            </Button>
+          </Link>
+          <h1 className="text-3xl font-bold">Edit Blog Post</h1>
+          <p className="text-muted-foreground">Update your blog post content</p>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Post Details</CardTitle>
+            <CardDescription>Update the basic information for your blog post</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="title">Title *</Label>
+              <Input
+                id="title"
+                placeholder="Enter post title"
+                value={formData.title}
+                onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="slug">Slug *</Label>
+              <Input
+                id="slug"
+                placeholder="post-url-slug"
+                value={formData.slug}
+                onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
+              />
+              <p className="text-xs text-muted-foreground">
+                URL-friendly version of the title
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="category">Category *</Label>
+              <Select
+                value={formData.category}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Microsoft 365">Microsoft 365</SelectItem>
+                  <SelectItem value="Automation">Automation</SelectItem>
+                  <SelectItem value="Security">Security</SelectItem>
+                  <SelectItem value="Learning">Learning</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="featuredImage">Featured Image URL</Label>
+              <Input
+                id="featuredImage"
+                placeholder="https://example.com/image.jpg"
+                value={formData.featuredImage}
+                onChange={(e) => setFormData(prev => ({ ...prev, featuredImage: e.target.value }))}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="seoDescription">SEO Description</Label>
+              <Textarea
+                id="seoDescription"
+                placeholder="Brief description for search engines (150-160 characters)"
+                rows={3}
+                value={formData.seoDescription}
+                onChange={(e) => setFormData(prev => ({ ...prev, seoDescription: e.target.value }))}
+              />
+              <p className="text-xs text-muted-foreground">
+                {formData.seoDescription.length}/160 characters
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Content *</CardTitle>
+            <CardDescription>Edit your blog post content with rich formatting</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <RichTextEditor
+              content={formData.content}
+              onChange={(content) => setFormData(prev => ({ ...prev, content }))}
+              placeholder="Start writing your post..."
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Publish Settings</CardTitle>
+            <CardDescription>Control when and how your post is published</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">Publication Status</p>
+                <p className="text-sm text-muted-foreground">
+                  Current status: {formData.status}
+                </p>
+              </div>
+              <Switch
+                checked={formData.status === "published"}
+                onCheckedChange={(checked) => 
+                  setFormData(prev => ({ ...prev, status: checked ? "published" : "draft" }))
+                }
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="flex gap-4">
+          <Button
+            onClick={handleSave}
+            disabled={isSaving}
+            className="flex-1"
+          >
+            {isSaving ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save className="mr-2 h-4 w-4" />
+                Save Changes
+              </>
+            )}
+          </Button>
+          <Link href="/admin/blog" className="flex-1">
+            <Button variant="ghost" className="w-full">
+              Cancel
+            </Button>
+          </Link>
+        </div>
+      </div>
+    </div>
+  )
+}

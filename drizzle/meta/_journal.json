@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1762068594434,
+      "tag": "0000_special_nextwave",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1762068678347,
+      "tag": "0001_silky_bill_hollister",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1762068743173,
+      "tag": "0002_clumsy_christian_walker",
+      "breakpoints": true
+    }
+  ]
+}
