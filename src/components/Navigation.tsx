@@ -15,7 +15,7 @@ export default function Navigation() {
         <div className="flex justify-between items-center h-16">
           {/* Logo/Name */}
           <Link href="/" className="text-xl font-bold text-foreground hover:text-primary transition-colors">
-            infra365.online
+            Sayan Ghosh
           </Link>
 
           {/* Desktop Navigation */}
