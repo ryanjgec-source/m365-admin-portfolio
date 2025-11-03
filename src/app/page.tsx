@@ -344,7 +344,8 @@ export default function Home() {
       {/* Footer */}
       <footer className="py-8 px-4 sm:px-6 lg:px-8 border-t border-border">
         <div className="max-w-5xl mx-auto text-center text-muted-foreground text-sm">
-          <p>© 2024 Sayan K Ghosh. All rights reserved.</p>
+          <p>© 2025 Sayan Ghosh. All rights reserved.</p>
+          <p className="mt-2 text-xs">microsoftadmin.in • Hosted and maintained by Sayan Ghosh</p>
         </div>
       </footer>
     </div>

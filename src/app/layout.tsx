@@ -5,8 +5,8 @@ import ErrorReporter from "@/components/ErrorReporter";
 import Script from "next/script";
 
 export const metadata: Metadata = {
-  title: "Sayan Ghosh | Microsoft 365 Administrator | infra365.online",
-  description: "Microsoft 365 specialist at infra365.online with 4 years at Accenture. Expert in cloud security, Entra ID, Teams, Intune, and automation.",
+  title: "Sayan Ghosh | Microsoft 365 Administrator | microsoftadmin.in",
+  description: "Microsoft 365 specialist at microsoftadmin.in with 4 years at Accenture. Expert in cloud security, Entra ID, Teams, Intune, and automation. All content and rights reserved by Sayan Ghosh.",
 };
 
 export default function RootLayout({
